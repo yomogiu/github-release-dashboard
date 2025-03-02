@@ -4,6 +4,8 @@ This app was created with Claude Code.
 
 It's a React-based dashboard for managing GitHub releases and tracking pull requests. This tool is designed to help software product managers or release owners manage and track their software more efficiently.
 
+Note: The token is stored in localStorage so for safety, I highly recommend deleting the token after you've tested it out. Full production deployment would need a backend API layer, CSRF protection, and some sort of token rotation mechanism.
+
 ## Features
 
 - **Authentication**: Login with GitHub Personal Access Token (PAT)
