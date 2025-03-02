@@ -54,7 +54,8 @@ npm start
 2. **Select Repository**: Enter a GitHub repository URL or owner/repo format
 3. **Dashboard**: Access the main dashboard with release management, pull requests, and history
 4. **Create Release**: Click "New Release" to create a new release
-5. **Manage Releases**: Update release phases and track issues
+5. **Manage Releases**: Update release phases and track PRs/issues via the PR/Issues/Custom tabs
+6. **Tag Issues/PRs**: Update labels to Issues/PRs and create custom views based on labels
 
 ## Technologies Used
 
