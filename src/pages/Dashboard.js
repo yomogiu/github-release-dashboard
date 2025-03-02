@@ -16,6 +16,7 @@ import ReleaseList from '../components/ReleaseList';
 import PullRequestList from '../components/PullRequestList';
 import PRDashboard from '../components/PRDashboard';
 import IssuesDashboard from '../components/IssuesDashboard';
+import ActionsWorkflowDashboard from '../components/ActionsWorkflowDashboard';
 import CustomView from '../components/CustomView';
 
 // Create TabPanel component
@@ -122,7 +123,8 @@ const Dashboard = () => {
               <Tab label="Releases" id="tab-0" aria-controls="tabpanel-0" />
               <Tab label="Pull Requests" id="tab-1" aria-controls="tabpanel-1" />
               <Tab label="Issues" id="tab-2" aria-controls="tabpanel-2" />
-              <Tab label="Custom View" id="tab-3" aria-controls="tabpanel-3" />
+              <Tab label="Actions" id="tab-3" aria-controls="tabpanel-3" />
+              <Tab label="Custom View" id="tab-4" aria-controls="tabpanel-4" />
             </Tabs>
           </Box>
           
@@ -147,8 +149,13 @@ const Dashboard = () => {
             <IssuesDashboard />
           </TabPanel>
           
-          {/* Custom View Tab */}
+          {/* Actions Tab */}
           <TabPanel value={tabValue} index={3}>
+            <ActionsWorkflowDashboard />
+          </TabPanel>
+          
+          {/* Custom View Tab */}
+          <TabPanel value={tabValue} index={4}>
             <CustomView />
           </TabPanel>
         </Paper>

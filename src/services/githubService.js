@@ -7,6 +7,9 @@ class GitHubService {
     this.cache = new Map();
     // Default cache expiry time (30 minutes in milliseconds)
     this.defaultCacheExpiry = 30 * 60 * 1000;
+    // Rate limit tracking
+    this.rateLimitRemaining = null;
+    this.rateLimitReset = null;
   }
   
   /**
@@ -786,6 +789,240 @@ class GitHubService {
    */
   getCacheExpiryTime() {
     return this.defaultCacheExpiry / (60 * 1000);
+  }
+
+  /**
+   * Track rate limit from response headers
+   * @param {Response} response - GitHub API response
+   * @private
+   */
+  _trackRateLimit(response) {
+    if (response && response.headers) {
+      // Octokit response headers are objects, not Maps, so we access properties directly
+      const remaining = response.headers['x-ratelimit-remaining'];
+      const reset = response.headers['x-ratelimit-reset'];
+      
+      if (remaining) this.rateLimitRemaining = parseInt(remaining, 10);
+      if (reset) this.rateLimitReset = parseInt(reset, 10);
+      
+      // Log when rate limit is getting low
+      if (this.rateLimitRemaining !== null && this.rateLimitRemaining < 50) {
+        console.warn(`[GitHub API] Rate limit is getting low: ${this.rateLimitRemaining} requests remaining`);
+      }
+    }
+  }
+  
+  /**
+   * Check if we should back off due to rate limiting
+   * @returns {boolean} True if should back off
+   * @private
+   */
+  _shouldBackOff() {
+    if (this.rateLimitRemaining !== null && this.rateLimitRemaining < 10) {
+      const now = Math.floor(Date.now() / 1000);
+      const timeToReset = this.rateLimitReset ? (this.rateLimitReset - now) : 0;
+      
+      if (timeToReset > 0) {
+        console.warn(`[GitHub API] Rate limiting active, backing off. ${timeToReset}s until reset.`);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Get GitHub Actions workflows for a repository
+   * @param {string} owner - Repository owner
+   * @param {string} repo - Repository name
+   * @param {boolean} useCache - Whether to use cached data if available
+   * @returns {Promise<{success: boolean, workflows?: Array, error?: string}>}
+   */
+  async getWorkflows(owner, repo, useCache = true) {
+    try {
+      const cacheKey = `${owner}/${repo}:workflows`;
+      
+      // Try to get from cache first if cache use is enabled
+      if (useCache) {
+        const cachedData = this.getCachedItem(cacheKey);
+        if (cachedData) {
+          console.log(`[GitHub API] Using cached workflows for ${owner}/${repo} (${cachedData.length} workflows)`);
+          return { success: true, workflows: cachedData };
+        }
+      }
+      
+      // Check rate limiting
+      if (this._shouldBackOff()) {
+        return { 
+          success: false, 
+          error: 'Rate limit exceeded. Please try again later.',
+          rateLimit: {
+            remaining: this.rateLimitRemaining,
+            resetAt: new Date(this.rateLimitReset * 1000).toLocaleString()
+          }
+        };
+      }
+      
+      console.log(`[GitHub API] Fetching workflows for ${owner}/${repo}`);
+      
+      // Initialize variables for pagination
+      let allWorkflows = [];
+      let page = 1;
+      let hasNextPage = true;
+      
+      // Fetch all pages of workflows
+      while (hasNextPage) {
+        console.log(`[GitHub API] Fetching workflows page ${page}`);
+        const response = await this.octokit.request('GET /repos/{owner}/{repo}/actions/workflows', {
+          owner,
+          repo,
+          per_page: 100,
+          page: page
+        });
+        
+        // Track rate limit
+        this._trackRateLimit(response);
+        
+        // Make sure we safely handle the workflows array
+        const workflows = response.data.workflows || [];
+        allWorkflows = [...allWorkflows, ...workflows];
+        
+        console.log(`[GitHub API] Retrieved ${workflows.length} workflows on page ${page}`);
+        
+        // Check if we've reached the last page
+        if (workflows.length < 100) {
+          hasNextPage = false;
+        } else {
+          page++;
+        }
+      }
+      
+      console.log(`[GitHub API] Total workflows fetched: ${allWorkflows.length}`);
+      
+      // Cache the results
+      this.setCacheItem(cacheKey, allWorkflows);
+      
+      return { success: true, workflows: allWorkflows };
+    } catch (error) {
+      console.error(`[GitHub API] Error fetching workflows: ${error.message}`);
+      return { success: false, error: error.message };
+    }
+  }
+  
+  /**
+   * Get GitHub Actions workflow runs for a repository
+   * @param {string} owner - Repository owner
+   * @param {string} repo - Repository name
+   * @param {string|null} workflowId - Specific workflow ID to fetch runs for, or null for all workflows
+   * @param {boolean} useCache - Whether to use cached data if available
+   * @returns {Promise<{success: boolean, workflowRuns?: Array, error?: string}>}
+   */
+  async getWorkflowRuns(owner, repo, workflowId = null, useCache = true) {
+    try {
+      const cacheKey = `${owner}/${repo}:workflow-runs:${workflowId || 'all'}`;
+      
+      // Try to get from cache first if cache use is enabled
+      if (useCache) {
+        const cachedData = this.getCachedItem(cacheKey);
+        if (cachedData) {
+          console.log(`[GitHub API] Using cached workflow runs for ${owner}/${repo} (${cachedData.length} runs)`);
+          return { success: true, workflowRuns: cachedData };
+        }
+      }
+      
+      // Check rate limiting
+      if (this._shouldBackOff()) {
+        return { 
+          success: false, 
+          error: 'Rate limit exceeded. Please try again later.',
+          rateLimit: {
+            remaining: this.rateLimitRemaining,
+            resetAt: new Date(this.rateLimitReset * 1000).toLocaleString()
+          }
+        };
+      }
+      
+      console.log(`[GitHub API] Fetching workflow runs for ${owner}/${repo}${workflowId ? ` (workflow ID: ${workflowId})` : ''}`);
+      
+      // Endpoint depends on whether a specific workflow was requested
+      const endpoint = workflowId
+        ? `GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
+        : `GET /repos/{owner}/{repo}/actions/runs`;
+      
+      // Parameters for the request
+      const params = {
+        owner,
+        repo,
+        per_page: 100,
+        page: 1
+      };
+      
+      // Add workflow_id parameter if specified
+      if (workflowId) {
+        // Convert to string if it's not already
+        params.workflow_id = typeof workflowId === 'string' ? workflowId : String(workflowId);
+        console.log(`[GitHub API] Using workflow ID: ${params.workflow_id}`);
+      }
+      
+      // Initialize variables for pagination
+      let allRuns = [];
+      let page = 1;
+      let hasNextPage = true;
+      
+      // Fetch workflow runs with pagination (limit to 500 runs total for performance)
+      const maxRuns = 500;
+      
+      while (hasNextPage && allRuns.length < maxRuns) {
+        console.log(`[GitHub API] Fetching workflow runs page ${page}`);
+        params.page = page;
+        
+        try {
+          console.log(`[GitHub API] Requesting: ${endpoint} with params:`, JSON.stringify(params));
+          const response = await this.octokit.request(endpoint, params);
+          
+          // Track rate limit
+          this._trackRateLimit(response);
+          
+          // Debug the response structure
+          console.log(`[GitHub API] Response structure:`, 
+            Object.keys(response.data).join(', '));
+          
+          // In the GitHub API, the response format can be different depending on the endpoint
+          // The workflow runs are in response.data.workflow_runs
+          const runs = Array.isArray(response.data.workflow_runs) 
+            ? response.data.workflow_runs 
+            : [];
+            
+          if (runs.length === 0) {
+            console.log(`[GitHub API] No workflow runs found in response. This might be normal if there are no runs.`);
+          }
+          
+          allRuns = [...allRuns, ...runs];
+          
+          console.log(`[GitHub API] Retrieved ${runs.length} workflow runs on page ${page}`);
+          
+          // Check if we've reached the last page or the max limit
+          if (runs.length < 100 || allRuns.length >= maxRuns) {
+            hasNextPage = false;
+          } else {
+            page++;
+          }
+        } catch (requestError) {
+          console.error(`[GitHub API] Error during request: ${requestError.message}`);
+          // Stop the loop on error
+          hasNextPage = false;
+        }
+      }
+      
+      console.log(`[GitHub API] Total workflow runs fetched: ${allRuns.length}`);
+      
+      // Cache the results with a shorter expiry since workflow runs change frequently
+      this.setCacheItem(cacheKey, allRuns, 15 * 60 * 1000); // 15 minutes
+      
+      return { success: true, workflowRuns: allRuns };
+    } catch (error) {
+      console.error(`[GitHub API] Error fetching workflow runs: ${error.message}`);
+      return { success: false, error: error.message };
+    }
   }
 }
 

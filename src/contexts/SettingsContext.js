@@ -36,6 +36,10 @@ export const SettingsProvider = ({ children }) => {
       setCacheExpiryTime(time);
       localStorage.setItem('cache_expiry_time', time.toString());
       githubService.setCacheExpiryTime(time);
+      
+      // Dispatch a custom event to notify components about the cache time change
+      window.dispatchEvent(new CustomEvent('cacheExpiryTimeChanged', { detail: time }));
+      
       return true;
     }
     return false;
