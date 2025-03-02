@@ -441,6 +441,75 @@ class GitHubService {
       return { success: false, error: error.message };
     }
   }
+  
+  async addLabelToIssue(owner, repo, issueNumber, labelName) {
+    try {
+      // Check if label exists first
+      const labelsResult = await this.getLabels(owner, repo);
+      if (!labelsResult.success) {
+        return { success: false, error: labelsResult.error };
+      }
+      
+      const labelExists = labelsResult.labels.some(label => 
+        label.name.toLowerCase() === labelName.toLowerCase()
+      );
+      
+      // Create the label if it doesn't exist
+      if (!labelExists) {
+        console.log(`[GitHub API] Creating new label: ${labelName}`);
+        
+        // Generate a random color for the new label
+        const randomColor = Math.floor(Math.random()*16777215).toString(16);
+        
+        try {
+          await this.octokit.rest.issues.createLabel({
+            owner,
+            repo,
+            name: labelName,
+            color: randomColor,
+            description: `Label created via GitHub Release Dashboard`
+          });
+        } catch (error) {
+          return { success: false, error: `Failed to create label: ${error.message}` };
+        }
+      }
+      
+      // Add the label to the issue
+      const { data } = await this.octokit.rest.issues.addLabels({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        labels: [labelName]
+      });
+      
+      // Clear cache for this issue
+      const cacheKey = `${owner}/${repo}:issues:all:`;
+      this.cache.delete(cacheKey);
+      
+      return { success: true, labels: data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+  
+  async removeLabelFromIssue(owner, repo, issueNumber, labelName) {
+    try {
+      await this.octokit.rest.issues.removeLabel({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        name: labelName
+      });
+      
+      // Clear cache for this issue
+      const cacheKey = `${owner}/${repo}:issues:all:`;
+      this.cache.delete(cacheKey);
+      
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
 
   async getMilestones(owner, repo, state = "all") {
     try {

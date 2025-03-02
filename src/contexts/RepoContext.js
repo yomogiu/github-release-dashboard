@@ -415,6 +415,48 @@ export const RepoProvider = ({ children }) => {
     }
   };
 
+  const addLabelToItem = async (itemNumber, labelName) => {
+    setLoading(true);
+    try {
+      const result = await githubService.addLabelToIssue(owner, repo, itemNumber, labelName);
+      
+      if (result.success) {
+        // Refresh the repo data to reflect the changes
+        setShouldLoadRepo(true);
+        return { success: true };
+      } else {
+        setError(result.error || 'Failed to add label');
+        return { success: false, error: result.error };
+      }
+    } catch (err) {
+      setError('An error occurred while adding label');
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const removeLabelFromItem = async (itemNumber, labelName) => {
+    setLoading(true);
+    try {
+      const result = await githubService.removeLabelFromIssue(owner, repo, itemNumber, labelName);
+      
+      if (result.success) {
+        // Refresh the repo data to reflect the changes
+        setShouldLoadRepo(true);
+        return { success: true };
+      } else {
+        setError(result.error || 'Failed to remove label');
+        return { success: false, error: result.error };
+      }
+    } catch (err) {
+      setError('An error occurred while removing label');
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     currentRepo,
     owner,
@@ -434,7 +476,9 @@ export const RepoProvider = ({ children }) => {
     fetchRepoData,
     createNewRelease,
     updateReleasePhase,
-    clearRepoData
+    clearRepoData,
+    addLabelToItem,
+    removeLabelFromItem
   };
 
   return (

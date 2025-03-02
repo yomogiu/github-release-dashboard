@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   Box, 
   Typography, 
@@ -16,23 +16,32 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  OutlinedInput
+  OutlinedInput,
+  TextField,
+  Autocomplete,
+  ClickAwayListener,
+  Button
 } from '@mui/material';
 import { 
   Launch as LaunchIcon,
   Check as CheckIcon,
   Error as ErrorIcon,
   PriorityHigh as PriorityHighIcon,
-  HourglassEmpty as HourglassEmptyIcon
+  HourglassEmpty as HourglassEmptyIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
 import { useRepo } from '../contexts/RepoContext';
 import Pagination from './common/Pagination';
 
 const PullRequestList = ({ customPRs }) => {
-  const { pullRequests, labels } = useRepo();
-  const [selectedLabels, setSelectedLabels] = useState([]);
+  const { pullRequests, labels, addLabelToItem, removeLabelFromItem } = useRepo();
+  const [filterLabels, setFilterLabels] = useState([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [editingLabels, setEditingLabels] = useState(null);
+  const [inputValue, setInputValue] = useState('');
+  const [selectedLabels, setSelectedLabels] = useState([]);
+  const labelCellRef = useRef(null);
   
   // Use customPRs if provided, otherwise use the ones from context
   const prData = customPRs || pullRequests;
@@ -46,14 +55,14 @@ const PullRequestList = ({ customPRs }) => {
     
     let filtered = [...prData];
     
-    if (selectedLabels.length > 0) {
+    if (filterLabels.length > 0) {
       filtered = filtered.filter(pr => 
-        pr.labels.some(label => selectedLabels.includes(label.name))
+        pr.labels.some(label => filterLabels.includes(label.name))
       );
     }
     
     return filtered;
-  }, [prData, selectedLabels, customPRs]);
+  }, [prData, filterLabels, customPRs]);
 
   // Apply pagination to the filtered PRs
   const paginatedPRs = useMemo(() => {
@@ -61,6 +70,45 @@ const PullRequestList = ({ customPRs }) => {
     const endIndex = startIndex + rowsPerPage;
     return filteredPRs.slice(startIndex, endIndex);
   }, [filteredPRs, page, rowsPerPage]);
+  
+  const handleLabelClick = (pr) => {
+    setEditingLabels(pr.number);
+    // Set the currently selected labels
+    setSelectedLabels(pr.labels.map(label => label.name));
+  };
+  
+  const handleLabelEditClose = () => {
+    setEditingLabels(null);
+    setInputValue('');
+    setSelectedLabels([]);
+  };
+  
+  const handleLabelChange = async (event, newValue) => {
+    if (!editingLabels) return;
+    
+    const currentPR = prData.find(pr => pr.number === editingLabels);
+    if (!currentPR) return;
+    
+    const currentLabels = currentPR.labels.map(label => label.name);
+    
+    // Find labels to add (in newValue but not in currentLabels)
+    const labelsToAdd = newValue.filter(label => !currentLabels.includes(label));
+    
+    // Find labels to remove (in currentLabels but not in newValue)
+    const labelsToRemove = currentLabels.filter(label => !newValue.includes(label));
+    
+    // Add new labels
+    for (const label of labelsToAdd) {
+      await addLabelToItem(editingLabels, label);
+    }
+    
+    // Remove labels
+    for (const label of labelsToRemove) {
+      await removeLabelFromItem(editingLabels, label);
+    }
+    
+    setSelectedLabels(newValue);
+  };
 
   const getStatusIcon = (pr) => {
     if (pr.merged) {
@@ -86,11 +134,11 @@ const PullRequestList = ({ customPRs }) => {
     }
   };
 
-  const handleLabelChange = (event) => {
+  const handleFilterLabelChange = (event) => {
     const {
       target: { value },
     } = event;
-    setSelectedLabels(typeof value === 'string' ? value.split(',') : value);
+    setFilterLabels(typeof value === 'string' ? value.split(',') : value);
     // Reset to first page when filter changes
     setPage(1);
   };
@@ -114,8 +162,8 @@ const PullRequestList = ({ customPRs }) => {
             <InputLabel>Filter by Labels</InputLabel>
             <Select
               multiple
-              value={selectedLabels}
-              onChange={handleLabelChange}
+              value={filterLabels}
+              onChange={handleFilterLabelChange}
               input={<OutlinedInput label="Filter by Labels" />}
               renderValue={(selected) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -179,26 +227,83 @@ const PullRequestList = ({ customPRs }) => {
                   <TableCell>
                     {new Date(pr.updated_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {pr.labels.slice(0, 3).map((label) => (
-                        <Chip 
-                          key={label.id} 
-                          label={label.name} 
-                          size="small"
-                          sx={{ 
-                            backgroundColor: `#${label.color}`,
-                            color: parseInt(label.color, 16) > 0x7FFFFF ? '#000' : '#fff'
-                          }}
-                        />
-                      ))}
-                      {pr.labels.length > 3 && (
-                        <Chip 
-                          label={`+${pr.labels.length - 3}`} 
-                          size="small"
-                        />
-                      )}
-                    </Box>
+                  <TableCell 
+                    ref={editingLabels === pr.number ? labelCellRef : null}
+                    onClick={() => handleLabelClick(pr)}
+                    sx={{ cursor: 'pointer', position: 'relative' }}
+                  >
+                    {editingLabels === pr.number ? (
+                      <ClickAwayListener onClickAway={handleLabelEditClose}>
+                        <Box sx={{ position: 'absolute', zIndex: 1000, width: 300, bgcolor: 'background.paper', boxShadow: 3, borderRadius: 1, p: 2 }}>
+                          <Typography variant="subtitle2" sx={{ mb: 1 }}>Edit Labels</Typography>
+                          <Autocomplete
+                            multiple
+                            freeSolo
+                            autoHighlight
+                            value={selectedLabels}
+                            onChange={handleLabelChange}
+                            inputValue={inputValue}
+                            onInputChange={(event, newInputValue) => {
+                              setInputValue(newInputValue);
+                            }}
+                            options={labels.map(label => label.name)}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                variant="outlined"
+                                size="small"
+                                placeholder="Add or remove labels..."
+                                fullWidth
+                              />
+                            )}
+                            renderTags={(value, getTagProps) =>
+                              value.map((option, index) => (
+                                <Chip
+                                  size="small"
+                                  label={option}
+                                  {...getTagProps({ index })}
+                                />
+                              ))
+                            }
+                          />
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                            <Button size="small" onClick={handleLabelEditClose}>Done</Button>
+                          </Box>
+                        </Box>
+                      </ClickAwayListener>
+                    ) : (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {pr.labels.length > 0 ? (
+                          <>
+                            {pr.labels.slice(0, 3).map((label) => (
+                              <Chip 
+                                key={label.id} 
+                                label={label.name} 
+                                size="small"
+                                sx={{ 
+                                  backgroundColor: `#${label.color}`,
+                                  color: parseInt(label.color, 16) > 0x7FFFFF ? '#000' : '#fff'
+                                }}
+                              />
+                            ))}
+                            {pr.labels.length > 3 && (
+                              <Chip 
+                                label={`+${pr.labels.length - 3}`} 
+                                size="small"
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <Typography 
+                            variant="body2" 
+                            color="text.secondary"
+                            sx={{ display: 'flex', alignItems: 'center' }}
+                          >
+                            <AddIcon fontSize="small" sx={{ mr: 0.5 }} /> Add Labels
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
                   </TableCell>
                   {customPRs && (
                     <TableCell>
