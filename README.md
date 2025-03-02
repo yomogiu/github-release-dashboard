@@ -2,14 +2,14 @@
 
 This app was created with Claude Code.
 
-It's a React-based dashboard for managing GitHub releases and tracking pull requests. This tool is designed to help software product managers or release owners manage and track their software more efficiently. Critical parts to implement would be license compliance reporting (SBOM generation) and code scan results.
+It's a React-based dashboard for managing GitHub releases and tracking pull requests. This tool is designed to help software product managers or release owners manage and track their software more efficiently. Critical parts to implement still would be license compliance reporting (SBOM generation) and code scan results.
 
-Note: The token is stored in localStorage so, for safety, I highly recommend deleting the token after you've tested it out. Full production deployment would need a backend API layer, CSRF protection, and some sort of token rotation mechanism.
+Note: The GitHub access token is stored in localStorage so, for safety, I highly recommend deleting the token after you've tested the repo out and before you deploy to prod. Full production deployment would need a backend API layer, CSRF protection, and some sort of token rotation mechanism to make this more robust.
 
 ## Features
 
 - **Authentication**: Login with GitHub Personal Access Token (PAT)
-- **Repository Selection**: View any repository you have access to
+- **Repository Selection**: Paste url to any repository you have access to
 - **Release Management**:
   - View all releases
   - Create new releases
@@ -23,7 +23,6 @@ Note: The token is stored in localStorage so, for safety, I highly recommend del
   - Filter PRs by date, milestone, review status, and labels
 - **Custom View**:
 	- Create custom view by combining labels
- 	- 
 - **Settings**:
 	- Change cache expiry time (helps with API call limit)
  	- Modify the number of PR/issues to fetch
