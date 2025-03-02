@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Repo Dashboard",
+  "name": "Repository Release & PR Dashboard",
   "icons": [
     {
       "src": "favicon.ico",
