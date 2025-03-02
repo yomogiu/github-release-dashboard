@@ -1,6 +1,8 @@
 # GitHub Release Dashboard
 
-A React-based dashboard for managing GitHub releases and tracking pull requests. This tool is designed to help Open Source Program Offices (OSPOs) manage their software release processes more efficiently.
+This app was created with Claude Code.
+
+It's a React-based dashboard for managing GitHub releases and tracking pull requests. This tool is designed to help software product managers or release owners manage and track their software more efficiently.
 
 ## Features
 
@@ -12,12 +14,17 @@ A React-based dashboard for managing GitHub releases and tracking pull requests.
   - Track release phases (development, staging, production)
   - Update release phases
 - **Pull Request Tracking**:
-  - View top 10 pull requests
-  - Filter PRs by labels
+  - View pull requests
+  - Filter PRs by date, milestone, review status, and labels
 - **Issue Management**:
-  - Associate issues with releases
-  - Count issues per release
-- **Release History**: Timeline view of all releases
+  - View issues
+  - Filter PRs by date, milestone, review status, and labels
+- **Custom View**:
+	- Create custom view by combining labels
+- **Settings**:
+	- Change cache expiry time (helps with API call limit)
+ 	- Modify the number of PR/issues to fetch
+  - View your current API limit for the token/user
 
 ## Installation
 
@@ -55,13 +62,9 @@ npm start
 - React Router
 - Chart.js
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
 
 ---
 
