@@ -274,7 +274,7 @@ export const RepoProvider = ({ children }) => {
             // Fetch issues - optimize loading with options
             addFetchLog(`Fetching issues for ${owner}/${repo}`);
             const issuesResult = await githubService.getIssues(owner, repo, "all", "", {
-              maxIssues: itemLimit || 200 // Use item limit if set, otherwise use 200 as default
+              maxIssues: itemLimit || 500 // Use item limit if set, otherwise use 500 as default
             });
             if (issuesResult.success) {
               addFetchLog(`Found ${issuesResult.issues.length} issues`);
