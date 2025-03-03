@@ -2,6 +2,10 @@
   "name": "github-release-dashboard",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "23.6.0",
+    "npm": "10.9.2"
+  },
   "dependencies": {
     "@date-io/date-fns": "^3.2.0",
     "@emotion/react": "^11.14.0",
