@@ -7,7 +7,7 @@ export const useSettings = () => useContext(SettingsContext);
 
 export const SettingsProvider = ({ children }) => {
   const [cacheExpiryTime, setCacheExpiryTime] = useState(30); // Default: 30 minutes
-  const [itemLimit, setItemLimit] = useState(null); // Default: null (no limit)
+  const [itemLimit, setItemLimit] = useState(5000); // Default: null (no limit)
   const [rateLimit, setRateLimit] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 

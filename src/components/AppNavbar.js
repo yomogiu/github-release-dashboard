@@ -9,7 +9,7 @@ import {
   Avatar,
   IconButton
 } from '@mui/material';
-import { Assessment, Logout, Settings as SettingsIcon } from '@mui/icons-material';
+import { Assessment, Logout, Settings as SettingsIcon, ArrowBack } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useRepo } from '../contexts/RepoContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -19,6 +19,9 @@ const AppNavbar = () => {
   const { currentRepo, clearRepoData } = useRepo();
   const navigate = useNavigate();
   const location = useLocation();
+  const handleBack = () => {
+    navigate(-1);
+  };
 
   const handleLogout = () => {
     logout();
@@ -41,7 +44,17 @@ const AppNavbar = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Assessment sx={{ mr: 2 }} />
+        {location.pathname !== '/' && location.pathname !== '/login' && (
+          <Tooltip title="Go back">
+            <IconButton 
+              color="inherit" 
+              onClick={handleBack}
+              sx={{ mr: 1 }}
+            >
+              <ArrowBack />
+            </IconButton>
+          </Tooltip>
+        )}
         
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           Repository Dashboard
