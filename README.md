@@ -49,6 +49,8 @@ cd github-release-dashboard
 npm install
 ```
 
+3. Create a '.env' file in the root directory (reference '.env.example') and store your GitHub Personal Access Token
+
 3. Start the development server:
 ```
 npm start
