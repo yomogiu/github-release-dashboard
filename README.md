@@ -18,9 +18,13 @@ Note: The GitHub access token is stored in localStorage so, for safety, I highly
 - **Pull Request Tracking**:
   - View pull requests
   - Filter PRs by date, milestone, review status, and labels
-- **Issue Management**:
+- **Issue Tracking**:
   - View issues
   - Filter PRs by date, milestone, review status, and labels
+- **Actions Dashboard**:
+  - View specific GitHub Actions workflow
+  - Dashboard showing count of Success, Failure, In Progress workflow
+  - Trend graph showing average duration for the day
 - **Custom View**:
 	- Create custom view by combining labels
 - **Settings**:
