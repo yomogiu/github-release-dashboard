@@ -164,7 +164,7 @@ const Settings = () => {
                     onChange={handleItemLimitChange}
                     sx={{ mr: 2 }}
                     placeholder="No limit"
-                    helperText="Maximum number of PRs/issues to fetch (blank = no limit)"
+                    helperText="Maximum number of PRs/issues to fetch (recommend set to 5000)"
                     InputProps={{
                       inputProps: { min: 1 }
                     }}
