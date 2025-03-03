@@ -289,8 +289,8 @@ const Settings = () => {
               <Divider sx={{ mb: 2 }} />
               <Alert severity="info" sx={{ mb: 2 }}>
                 <Typography variant="body2">
-                  Your GitHub Personal Access Token is currently stored in browser localStorage. 
-                  While convenient, this is not the most secure storage method and could be vulnerable to XSS attacks.
+                  APPLICABLE TO LOCAL ONLY: Your GitHub Personal Access Token is currently stored in browser localStorage. 
+                  Remember to delete your token after testing.
                 </Typography>
               </Alert>
               <Typography variant="body2" color="text.secondary">
