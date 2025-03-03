@@ -82,13 +82,13 @@ const AppNavbar = () => {
               />
             </Tooltip>
             
-            <Button 
+            {/*<Button 
               color="inherit" 
               onClick={handleLogout}
               startIcon={<Logout />}
             >
               Logout
-            </Button>
+            </Button>*/}
           </Box>
         )}
       </Toolbar>

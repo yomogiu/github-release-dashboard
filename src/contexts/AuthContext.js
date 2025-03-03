@@ -54,11 +54,22 @@ export const AuthProvider = ({ children }) => {
   }, [logout]);
   
   useEffect(() => {
-    const storedToken = localStorage.getItem('github_token');
-    if (storedToken) {
-      login(storedToken);
+    const envToken = process.env.REACT_APP_GITHUB_TOKEN;
+    const envRepoUrl = process.env.REACT_APP_DEFAULT_REPO_URL || '';
+    
+    // If environment token exists, use it
+    if (envToken) {
+      console.log("Using GitHub token from environment variables");
+      login(envToken, envRepoUrl);
     } else {
       setLoading(false);
+      // Fall back to localStorage if no environment token
+      const storedToken = localStorage.getItem('github_token');
+      if (storedToken) {
+        login(storedToken);
+      } else {
+        setLoading(false);
+      }
     }
   }, [login]);
 
