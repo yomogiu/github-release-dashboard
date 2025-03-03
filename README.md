@@ -2,13 +2,13 @@
 
 This app was created with Claude Code.
 
-It's a React-based dashboard for managing GitHub releases and tracking pull requests. This tool is designed to help software product managers or release owners manage and track their software more efficiently. Critical parts to implement still would be license compliance reporting (SBOM generation) and code scan results.
+Demo: [GitHub Release Dashboard](https://github-release-dashboard-7zrm-69dnstvtb-oboros-projects.vercel.app/)
+
+This a React-based dashboard for managing GitHub releases and tracking pull requests, as well as monitoring GitHub Actions (e.g., code scan, unit tests, etc.). This tool is designed to help software product managers or release owners manage and track their software more efficiently. Important parts to implement still would be license compliance reporting (SBOM generation) and GitHub Actions monitoring filtered by branches.
 
 ## Open Issues
 
-The GitHub Actions fetching has some issue with the initial retrieval so if the line graph is not updating correctly, hit the "Reload Selected Workflow Runs" again to refresh.
-
-Note: The GitHub access token is stored in localStorage so, for safety, I highly recommend deleting the token after you've tested the repo out and before you deploy to prod. Full production deployment would need a backend API layer, CSRF protection, and some sort of token rotation mechanism to make this more robust.
+The GitHub Actions fetching has some issue with the initial retrieval so if the line graph is only showing a handful of events, hit the "Reload Selected Workflow Runs" again to refresh.
 
 ## Features
 
@@ -43,29 +43,19 @@ Note: The GitHub access token is stored in localStorage so, for safety, I highly
 git clone https://github.com/yourusername/github-release-dashboard.git
 cd github-release-dashboard
 ```
-
 2. Install dependencies:
 ```
 npm install
 ```
-
 3. Create a '.env' file in the root directory (reference '.env.example') and store your GitHub Personal Access Token
-
-3. Start the development server:
+```
+4. Start the development server:
 ```
 npm start
 ```
 
-4. Open your browser and navigate to `http://localhost:3000`
+5. Open your browser and navigate to `http://localhost:3000`
 
-## Usage
-
-1. **Login**: Enter your GitHub Personal Access Token (needs repos, read:org, read:user permissions)
-2. **Select Repository**: Enter a GitHub repository URL or owner/repo format
-3. **Dashboard**: Access the main dashboard with release management, pull requests, and history
-4. **Create Release**: Click "New Release" to create a new release
-5. **Manage Releases**: Update release phases and track PRs/issues via the PR/Issues/Custom tabs
-6. **Tag Issues/PRs**: Update labels to Issues/PRs and create custom views based on labels
 
 ## Technologies Used
 
