@@ -139,7 +139,7 @@ class GitHubService {
   async getPullRequests(owner, repo, state = "all", labels = "", options = {}) {
     try {
       const cacheKey = `${owner}/${repo}:prs:${state}:${labels}`;
-      const { useCache = true, maxPRs = 300, skipReviewData = false } = options;
+      const { useCache = true, maxPRs = 200, skipReviewData = false } = options;
       
       // Try to get from cache first if cache use is enabled
       if (useCache) {
@@ -637,7 +637,7 @@ class GitHubService {
   async getIssues(owner, repo, state = "all", labels = "", options = {}) {
     try {
       const cacheKey = `${owner}/${repo}:issues:${state}:${labels}`;
-      const { useCache = true, maxIssues = 1000 } = options;
+      const { useCache = true, maxIssues = 600 } = options;
       
       // Try to get from cache first if cache use is enabled
       if (useCache) {
