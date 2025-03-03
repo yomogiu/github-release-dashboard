@@ -2,7 +2,7 @@
 
 This app was created with Claude Code.
 
-Demo: [GitHub Release Dashboard](https://github-release-dashboard-7zrm-69dnstvtb-oboros-projects.vercel.app/)
+Demo: [GitHub Release Dashboard](github-release-dashboard-7zrm.vercel.app)
 
 This a React-based dashboard for managing GitHub releases and tracking pull requests, as well as monitoring GitHub Actions (e.g., code scan, unit tests, etc.). This tool is designed to help software product managers or release owners manage and track their software more efficiently. Important parts to implement still would be license compliance reporting (SBOM generation) and GitHub Actions monitoring filtered by branches.
 
